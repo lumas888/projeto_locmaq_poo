@@ -23,7 +23,7 @@ public class MainApp extends Application {
         boolean adminExiste = usuarioRepo.listarTodos().stream()
                 .anyMatch(u -> u.getLogin().equals("admin"));
         if (!adminExiste) {
-            Usuario admin = new Usuario(0, "Administrador", "admin", "root", "admin@locmaq.com", TipoUsuario.GESTOR);
+            Usuario admin = new Usuario("Administrador", "admin", "root", "admin@locmaq.com", TipoUsuario.GESTOR);
             usuarioRepo.salvar(admin);
         }
 
