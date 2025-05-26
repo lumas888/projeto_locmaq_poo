@@ -11,6 +11,8 @@ public class ClienteRepository {
 
     public void salvar(Cliente cliente) throws IOException {
         List<Cliente> lista = listarTodos();
+        int novoId = lista.stream().mapToInt(Cliente::getIdCliente).max().orElse(0) + 1;
+        cliente.setIdCliente(novoId);
         lista.add(cliente);
         salvarLista(lista);
     }
@@ -51,5 +53,14 @@ public class ClienteRepository {
             if (c.getIdCliente() == idCliente) return c;
         }
         return null;
+    }
+
+    public boolean cnpjDisponivel(String cnpj, Integer ignorarId) {
+        for (Cliente c : listarTodos()) {
+            if (c.getCnpj().equals(cnpj) && (ignorarId == null || c.getIdCliente() != ignorarId)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
