@@ -8,6 +8,7 @@ import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 public class UsuarioView extends VBox {
     private TextField tfId = new TextField();
@@ -24,7 +25,7 @@ public class UsuarioView extends VBox {
         setSpacing(10);
         setPadding(new Insets(15));
 
-        tfId.setPromptText("ID");
+        tfId.setPromptText("ID (para buscar, atualizar ou excluir)");
         tfNome.setPromptText("Nome");
         tfLogin.setPromptText("Login");
         tfSenha.setPromptText("Senha");
@@ -47,15 +48,45 @@ public class UsuarioView extends VBox {
         btnExcluir.setOnAction(e -> excluirUsuario());
         btnListar.setOnAction(e -> listarUsuarios());
 
-        getChildren().addAll(tfId, tfNome, tfLogin, tfSenha, tfEmail, cbTipo,
-                new HBox(10, btnSalvar, btnBuscar, btnAtualizar, btnExcluir, btnListar),
-                taLista);
+        getChildren().addAll(
+                new HBox(10, tfId, btnBuscar, btnAtualizar, btnExcluir),
+                tfNome, tfLogin, tfSenha, tfEmail, cbTipo,
+                new HBox(10, btnSalvar, btnListar),
+                taLista
+        );
+    }
+
+    private boolean emailValido(String email) {
+        String regex = "^[\\w\\.-]+@[\\w\\.-]+\\.\\w{2,}$";
+        return Pattern.matches(regex, email);
+    }
+
+    private boolean loginDisponivel(String login, Integer ignorarId) {
+        for (Usuario u : repo.listarTodos()) {
+            if (u.getLogin().equals(login) && (ignorarId == null || u.getIdUsuario() != ignorarId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void inserirUsuario() {
         try {
+            if (tfNome.getText().isEmpty() || tfLogin.getText().isEmpty() ||
+                    tfSenha.getText().isEmpty() || tfEmail.getText().isEmpty() ||
+                    cbTipo.getValue() == null) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            if (!emailValido(tfEmail.getText())) {
+                taLista.setText("E-mail inválido.");
+                return;
+            }
+            if (!loginDisponivel(tfLogin.getText(), null)) {
+                taLista.setText("Login já cadastrado.");
+                return;
+            }
             Usuario usuario = new Usuario(
-                    Integer.parseInt(tfId.getText()),
                     tfNome.getText(),
                     tfLogin.getText(),
                     tfSenha.getText(),
@@ -72,6 +103,10 @@ public class UsuarioView extends VBox {
 
     private void buscarUsuario() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para buscar.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             Usuario usuario = repo.buscarPorId(id);
             if (usuario != null) {
@@ -90,14 +125,33 @@ public class UsuarioView extends VBox {
 
     private void atualizarUsuario() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para atualizar.");
+                return;
+            }
+            int id = Integer.parseInt(tfId.getText());
+            if (tfNome.getText().isEmpty() || tfLogin.getText().isEmpty() ||
+                    tfSenha.getText().isEmpty() || tfEmail.getText().isEmpty() ||
+                    cbTipo.getValue() == null) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            if (!emailValido(tfEmail.getText())) {
+                taLista.setText("E-mail inválido.");
+                return;
+            }
+            if (!loginDisponivel(tfLogin.getText(), id)) {
+                taLista.setText("Login já cadastrado para outro usuário.");
+                return;
+            }
             Usuario usuario = new Usuario(
-                    Integer.parseInt(tfId.getText()),
                     tfNome.getText(),
                     tfLogin.getText(),
                     tfSenha.getText(),
                     tfEmail.getText(),
                     cbTipo.getValue()
             );
+            usuario.setIdUsuario(id);
             repo.atualizar(usuario);
             limparCampos();
             listarUsuarios();
@@ -108,6 +162,10 @@ public class UsuarioView extends VBox {
 
     private void excluirUsuario() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para excluir.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             repo.excluir(id);
             limparCampos();
