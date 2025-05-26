@@ -1,23 +1,34 @@
 package io.github.mateus.projetopoo;
 
+import io.github.mateus.projetopoo.model.TipoUsuario;
+import io.github.mateus.projetopoo.model.Usuario;
+import io.github.mateus.projetopoo.repository.UsuarioRepository;
 import io.github.mateus.projetopoo.view.*;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+
 public class MainApp extends Application {
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws IOException {
+        UsuarioRepository usuarioRepo = new UsuarioRepository();
+        boolean adminExiste = usuarioRepo.listarTodos().stream()
+                .anyMatch(u -> u.getLogin().equals("admin"));
+        if (!adminExiste) {
+            Usuario admin = new Usuario(0, "Administrador", "admin", "root", "admin@locmaq.com", TipoUsuario.GESTOR);
+            usuarioRepo.salvar(admin);
+        }
+
         primaryStage.setTitle("LocMac - Sistema de Gestão de Locação");
 
-        // Tela de Boas-Vindas
         VBox telaInicial = new VBox(20);
         telaInicial.setAlignment(Pos.CENTER);
         telaInicial.setPadding(new Insets(40));
@@ -31,58 +42,91 @@ public class MainApp extends Application {
         subtitulo.setFont(new Font("Arial", 18));
         subtitulo.setTextFill(Color.web("#374151"));
 
-        Button btnEntrar = new Button("Acessar Sistema");
-        estilizarBotaoPrincipal(btnEntrar);
+        Button btnPainelAdmin = new Button("Painel Admin");
+        Button btnMenuPrincipal = new Button("Menu Principal");
+        estilizarBotaoPrincipal(btnPainelAdmin);
+        estilizarBotaoPrincipal(btnMenuPrincipal);
 
-        telaInicial.getChildren().addAll(titulo, subtitulo, btnEntrar);
+        telaInicial.getChildren().setAll(titulo, subtitulo, btnPainelAdmin, btnMenuPrincipal);
 
         Scene sceneInicial = new Scene(telaInicial, 700, 500);
 
-        // Tela Menu Principal
-        VBox menu = new VBox(20);
-        menu.setAlignment(Pos.CENTER);
-        menu.setPadding(new Insets(30));
-        menu.setBackground(new Background(new BackgroundFill(Color.web("#f3f4f6"), null, null)));
+        btnPainelAdmin.setOnAction(e -> {
+            AutenticacaoView.mostrar(usuario -> {
+                if (usuario.getTipo() == TipoUsuario.GESTOR && usuario.getLogin().equals("admin")) {
+                    abrirJanela(new UsuarioView(), "Painel Admin - Gerenciar Usuário");
+                } else {
+                    mostrarAlerta("Acesso restrito ao administrador.");
+                }
+            });
+        });
 
-        Label tituloMenu = new Label("Menu Principal - LocMac");
-        tituloMenu.setFont(new Font("Arial", 28));
-        tituloMenu.setTextFill(Color.web("#263238"));
-
-        Button btnCliente = new Button("CRUD Cliente");
-        Button btnEquipamento = new Button("CRUD Equipamento");
-        Button btnUsuario = new Button("CRUD Usuário");
-        Button btnDono = new Button("CRUD Dono");
-        Button btnBoletim = new Button("CRUD Boletim de Medição");
-        Button btnContrato = new Button("CRUD Contrato de Locação");
-
-        estilizarBotaoCRUD(btnCliente);
-        estilizarBotaoCRUD(btnEquipamento);
-        estilizarBotaoCRUD(btnUsuario);
-        estilizarBotaoCRUD(btnDono);
-        estilizarBotaoCRUD(btnBoletim);
-        estilizarBotaoCRUD(btnContrato);
-
-        menu.getChildren().addAll(tituloMenu,
-                btnCliente, btnEquipamento, btnUsuario,
-                btnDono, btnBoletim, btnContrato);
-
-        Scene sceneMenu = new Scene(menu, 700, 500);
-
-        // Ações
-        btnEntrar.setOnAction(e -> primaryStage.setScene(sceneMenu));
-
-        btnCliente.setOnAction(e -> abrirJanela(new ClienteView(), "CRUD Cliente"));
-        btnEquipamento.setOnAction(e -> abrirJanela(new EquipamentoView(), "CRUD Equipamento"));
-        btnUsuario.setOnAction(e -> abrirJanela(new UsuarioView(), "CRUD Usuário"));
-        btnDono.setOnAction(e -> abrirJanela(new DonoView(), "CRUD Dono"));
-        btnBoletim.setOnAction(e -> abrirJanela(new BoletimMedicaoView(), "CRUD Boletim de Medição"));
-        btnContrato.setOnAction(e -> abrirJanela(new ContratoLocacaoView(), "CRUD Contrato de Locação"));
+        btnMenuPrincipal.setOnAction(e -> {
+            AutenticacaoView.mostrar(usuario -> {
+                if (usuario.getTipo() == TipoUsuario.LOGISTICA) {
+                    abrirMenuLogistica();
+                } else if (usuario.getTipo() == TipoUsuario.PLANEJADOR) {
+                    abrirMenuPlanejador();
+                } else {
+                    mostrarAlerta("Tipo de usuário sem acesso ao menu principal.");
+                }
+            });
+        });
 
         primaryStage.setScene(sceneInicial);
         primaryStage.show();
     }
 
-    // Método para abrir as telas dos CRUDs
+    private void abrirMenuLogistica() {
+        VBox menu = new VBox(20);
+        menu.setAlignment(Pos.CENTER);
+        menu.setPadding(new Insets(30));
+        menu.setBackground(new Background(new BackgroundFill(Color.web("#f3f4f6"), null, null)));
+
+        Label tituloMenu = new Label("Menu Logística");
+        tituloMenu.setFont(new Font("Arial", 28));
+        tituloMenu.setTextFill(Color.web("#263238"));
+
+        Button btnEquipamento = criarBotaoCRUD("Gerenciar Equipamento", new EquipamentoView());
+        Button btnContrato = criarBotaoCRUD("Gerenciar Contrato de Locação", new ContratoLocacaoView());
+
+        menu.getChildren().addAll(tituloMenu, btnEquipamento, btnContrato);
+
+        Stage stage = new Stage();
+        stage.setTitle("Menu Logística");
+        stage.setScene(new Scene(menu, 600, 400));
+        stage.show();
+    }
+
+    private void abrirMenuPlanejador() {
+        VBox menu = new VBox(20);
+        menu.setAlignment(Pos.CENTER);
+        menu.setPadding(new Insets(30));
+        menu.setBackground(new Background(new BackgroundFill(Color.web("#f3f4f6"), null, null)));
+
+        Label tituloMenu = new Label("Menu Planejador");
+        tituloMenu.setFont(new Font("Arial", 28));
+        tituloMenu.setTextFill(Color.web("#263238"));
+
+        Button btnBoletim = criarBotaoCRUD("Boletim de Medição", new BoletimMedicaoView());
+        Button btnCliente = criarBotaoCRUD("Gerenciar Cliente", new ClienteView());
+        Button btnDono = criarBotaoCRUD("Gerenciar Dono", new DonoView());
+
+        menu.getChildren().addAll(tituloMenu, btnBoletim, btnCliente, btnDono);
+
+        Stage stage = new Stage();
+        stage.setTitle("Menu Planejador");
+        stage.setScene(new Scene(menu, 600, 400));
+        stage.show();
+    }
+
+    private Button criarBotaoCRUD(String texto, VBox view) {
+        Button btn = new Button(texto);
+        estilizarBotaoCRUD(btn);
+        btn.setOnAction(e -> abrirJanela(view, texto));
+        return btn;
+    }
+
     private void abrirJanela(VBox view, String titulo) {
         Stage stage = new Stage();
         stage.setTitle(titulo);
@@ -90,7 +134,6 @@ public class MainApp extends Application {
         stage.show();
     }
 
-    // Estilo dos botões principais
     private void estilizarBotaoPrincipal(Button btn) {
         btn.setStyle("-fx-background-color: #374151; -fx-text-fill: white; -fx-font-size: 16px; "
                 + "-fx-padding: 10px 20px; -fx-background-radius: 8px;");
@@ -100,7 +143,6 @@ public class MainApp extends Application {
                 + "-fx-font-size: 16px; -fx-padding: 10px 20px; -fx-background-radius: 8px;"));
     }
 
-    // Estilo dos botões do menu CRUD
     private void estilizarBotaoCRUD(Button btn) {
         btn.setMinWidth(280);
         btn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #374151; -fx-font-size: 15px; "
@@ -112,6 +154,11 @@ public class MainApp extends Application {
         btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #374151; "
                 + "-fx-font-size: 15px; -fx-padding: 10px 18px; -fx-border-color: #d1d5db; "
                 + "-fx-border-radius: 8px; -fx-background-radius: 8px;"));
+    }
+
+    private void mostrarAlerta(String mensagem) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, mensagem, ButtonType.OK);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {
