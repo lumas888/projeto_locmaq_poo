@@ -11,6 +11,8 @@ public class DonoRepository {
 
     public void salvar(Dono dono) throws IOException {
         List<Dono> lista = listarTodos();
+        int novoId = lista.stream().mapToInt(Dono::getIdDono).max().orElse(0) + 1;
+        dono.setIdDono(novoId);
         lista.add(dono);
         salvarLista(lista);
     }
@@ -51,5 +53,14 @@ public class DonoRepository {
             if (d.getIdDono() == idDono) return d;
         }
         return null;
+    }
+
+    public boolean emailDisponivel(String email, Integer ignorarId) {
+        for (Dono d : listarTodos()) {
+            if (d.getEmail().equalsIgnoreCase(email) && (ignorarId == null || d.getIdDono() != ignorarId)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

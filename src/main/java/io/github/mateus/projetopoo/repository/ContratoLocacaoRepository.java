@@ -11,6 +11,8 @@ public class ContratoLocacaoRepository {
 
     public void salvar(ContratoLocacao contrato) throws IOException {
         List<ContratoLocacao> lista = listarTodos();
+        int novoId = lista.stream().mapToInt(ContratoLocacao::getId).max().orElse(0) + 1;
+        contrato.setId(novoId);
         lista.add(contrato);
         salvarLista(lista);
     }

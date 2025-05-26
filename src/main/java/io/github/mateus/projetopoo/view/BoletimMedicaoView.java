@@ -21,7 +21,7 @@ public class BoletimMedicaoView extends VBox {
         setSpacing(10);
         setPadding(new Insets(15));
 
-        tfId.setPromptText("ID");
+        tfId.setPromptText("ID (para buscar, atualizar ou excluir)");
         tfDescricao.setPromptText("Descrição");
         tfData.setPromptText("Data");
         tfValorMedido.setPromptText("Valor Medido");
@@ -41,18 +41,31 @@ public class BoletimMedicaoView extends VBox {
         btnExcluir.setOnAction(e -> excluirBoletim());
         btnListar.setOnAction(e -> listarBoletins());
 
-        getChildren().addAll(tfId, tfDescricao, tfData, tfValorMedido,
-                new HBox(10, btnSalvar, btnBuscar, btnAtualizar, btnExcluir, btnListar),
-                taLista);
+        getChildren().addAll(
+                new HBox(10, tfId, btnBuscar, btnAtualizar, btnExcluir),
+                tfDescricao, tfData, tfValorMedido,
+                new HBox(10, btnSalvar, btnListar),
+                taLista
+        );
     }
 
     private void inserirBoletim() {
         try {
+            if (tfDescricao.getText().isEmpty() || tfData.getText().isEmpty() || tfValorMedido.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            double valor;
+            try {
+                valor = Double.parseDouble(tfValorMedido.getText());
+            } catch (NumberFormatException e) {
+                taLista.setText("Valor Medido inválido.");
+                return;
+            }
             BoletimMedicao boletim = new BoletimMedicao(
-                    Integer.parseInt(tfId.getText()),
                     tfDescricao.getText(),
                     tfData.getText(),
-                    Double.parseDouble(tfValorMedido.getText())
+                    valor
             );
             repo.salvar(boletim);
             limparCampos();
@@ -64,6 +77,10 @@ public class BoletimMedicaoView extends VBox {
 
     private void buscarBoletim() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para buscar.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             BoletimMedicao boletim = repo.buscarPorId(id);
             if (boletim != null) {
@@ -80,12 +97,28 @@ public class BoletimMedicaoView extends VBox {
 
     private void atualizarBoletim() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para atualizar.");
+                return;
+            }
+            if (tfDescricao.getText().isEmpty() || tfData.getText().isEmpty() || tfValorMedido.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            double valor;
+            try {
+                valor = Double.parseDouble(tfValorMedido.getText());
+            } catch (NumberFormatException e) {
+                taLista.setText("Valor Medido inválido.");
+                return;
+            }
+            int id = Integer.parseInt(tfId.getText());
             BoletimMedicao boletim = new BoletimMedicao(
-                    Integer.parseInt(tfId.getText()),
                     tfDescricao.getText(),
                     tfData.getText(),
-                    Double.parseDouble(tfValorMedido.getText())
+                    valor
             );
+            boletim.setId(id);
             repo.atualizar(boletim);
             limparCampos();
             listarBoletins();
@@ -96,6 +129,10 @@ public class BoletimMedicaoView extends VBox {
 
     private void excluirBoletim() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para excluir.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             repo.excluir(id);
             limparCampos();

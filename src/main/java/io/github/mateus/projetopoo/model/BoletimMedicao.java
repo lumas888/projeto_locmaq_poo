@@ -8,8 +8,7 @@ public class BoletimMedicao implements Serializable {
     private String data;
     private double valorMedido;
 
-    public BoletimMedicao(int id, String descricao, String data, double valorMedido) {
-        this.id = id;
+    public BoletimMedicao(String descricao, String data, double valorMedido) {
         this.descricao = descricao;
         this.data = data;
         this.valorMedido = valorMedido;

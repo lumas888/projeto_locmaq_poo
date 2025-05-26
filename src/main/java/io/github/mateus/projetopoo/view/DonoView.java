@@ -7,6 +7,7 @@ import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 public class DonoView extends VBox {
     private TextField tfId = new TextField();
@@ -25,7 +26,7 @@ public class DonoView extends VBox {
         setSpacing(10);
         setPadding(new Insets(15));
 
-        tfId.setPromptText("ID");
+        tfId.setPromptText("ID (para buscar, atualizar ou excluir)");
         tfNome.setPromptText("Nome");
         tfEndereco.setPromptText("Endereço");
         tfEmail.setPromptText("Email");
@@ -49,15 +50,37 @@ public class DonoView extends VBox {
         btnExcluir.setOnAction(e -> excluirDono());
         btnListar.setOnAction(e -> listarDonos());
 
-        getChildren().addAll(tfId, tfNome, tfEndereco, tfEmail, tfTelefone, tfBanco, tfAgencia, tfNumeroConta,
-                new HBox(10, btnSalvar, btnBuscar, btnAtualizar, btnExcluir, btnListar),
-                taLista);
+        getChildren().addAll(
+                new HBox(10, tfId, btnBuscar, btnAtualizar, btnExcluir),
+                tfNome, tfEndereco, tfEmail, tfTelefone, tfBanco, tfAgencia, tfNumeroConta,
+                new HBox(10, btnSalvar, btnListar),
+                taLista
+        );
+    }
+
+    private boolean emailValido(String email) {
+        String regex = "^[\\w\\.-]+@[\\w\\.-]+\\.\\w{2,}$";
+        return Pattern.matches(regex, email);
     }
 
     private void inserirDono() {
         try {
+            if (tfNome.getText().isEmpty() || tfEndereco.getText().isEmpty() ||
+                    tfEmail.getText().isEmpty() || tfTelefone.getText().isEmpty() ||
+                    tfBanco.getText().isEmpty() || tfAgencia.getText().isEmpty() ||
+                    tfNumeroConta.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            if (!emailValido(tfEmail.getText())) {
+                taLista.setText("E-mail inválido.");
+                return;
+            }
+            if (!repo.emailDisponivel(tfEmail.getText(), null)) {
+                taLista.setText("E-mail já cadastrado.");
+                return;
+            }
             Dono dono = new Dono(
-                    Integer.parseInt(tfId.getText()),
                     tfNome.getText(),
                     tfEndereco.getText(),
                     tfEmail.getText(),
@@ -76,6 +99,10 @@ public class DonoView extends VBox {
 
     private void buscarDono() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para buscar.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             Dono dono = repo.buscarPorId(id);
             if (dono != null) {
@@ -96,8 +123,27 @@ public class DonoView extends VBox {
 
     private void atualizarDono() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para atualizar.");
+                return;
+            }
+            int id = Integer.parseInt(tfId.getText());
+            if (tfNome.getText().isEmpty() || tfEndereco.getText().isEmpty() ||
+                    tfEmail.getText().isEmpty() || tfTelefone.getText().isEmpty() ||
+                    tfBanco.getText().isEmpty() || tfAgencia.getText().isEmpty() ||
+                    tfNumeroConta.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            if (!emailValido(tfEmail.getText())) {
+                taLista.setText("E-mail inválido.");
+                return;
+            }
+            if (!repo.emailDisponivel(tfEmail.getText(), id)) {
+                taLista.setText("E-mail já cadastrado para outro dono.");
+                return;
+            }
             Dono dono = new Dono(
-                    Integer.parseInt(tfId.getText()),
                     tfNome.getText(),
                     tfEndereco.getText(),
                     tfEmail.getText(),
@@ -106,6 +152,7 @@ public class DonoView extends VBox {
                     tfAgencia.getText(),
                     tfNumeroConta.getText()
             );
+            dono.setIdDono(id);
             repo.atualizar(dono);
             limparCampos();
             listarDonos();
@@ -116,6 +163,10 @@ public class DonoView extends VBox {
 
     private void excluirDono() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para excluir.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             repo.excluir(id);
             limparCampos();

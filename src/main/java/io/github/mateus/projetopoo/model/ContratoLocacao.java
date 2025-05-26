@@ -9,8 +9,7 @@ public class ContratoLocacao implements Serializable {
     private String descricao;
     private double valor;
 
-    public ContratoLocacao(int id, String dataInicio, String dataFim, String descricao, double valor) {
-        this.id = id;
+    public ContratoLocacao(String dataInicio, String dataFim, String descricao, double valor) {
         this.dataInicio = dataInicio;
         this.dataFim = dataFim;
         this.descricao = descricao;

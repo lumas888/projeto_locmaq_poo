@@ -11,6 +11,8 @@ public class EquipamentoRepository {
 
     public void salvar(Equipamento equipamento) throws IOException {
         List<Equipamento> lista = listarTodos();
+        int novoId = lista.stream().mapToInt(Equipamento::getIdEquipamento).max().orElse(0) + 1;
+        equipamento.setIdEquipamento(novoId);
         lista.add(equipamento);
         salvarLista(lista);
     }
@@ -52,5 +54,13 @@ public class EquipamentoRepository {
         }
         return null;
     }
-}
 
+    public boolean numeroSerieDisponivel(String numeroSerie, Integer ignorarId) {
+        for (Equipamento e : listarTodos()) {
+            if (e.getNumeroSerie().equals(numeroSerie) && (ignorarId == null || e.getIdEquipamento() != ignorarId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}

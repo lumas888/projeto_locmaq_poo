@@ -25,7 +25,7 @@ public class EquipamentoView extends VBox {
         setSpacing(10);
         setPadding(new Insets(15));
 
-        tfId.setPromptText("ID");
+        tfId.setPromptText("ID (para buscar, atualizar ou excluir)");
         tfNome.setPromptText("Nome");
         tfDescricao.setPromptText("Descrição");
         tfFabricante.setPromptText("Fabricante");
@@ -45,15 +45,26 @@ public class EquipamentoView extends VBox {
         btnExcluir.setOnAction(e -> excluirEquipamento());
         btnListar.setOnAction(e -> listarEquipamentos());
 
-        getChildren().addAll(tfId, tfNome, tfDescricao, tfFabricante, tfNumeroSerie,
-                new HBox(10, btnSalvar, btnBuscar, btnAtualizar, btnExcluir, btnListar),
-                taLista);
+        getChildren().addAll(
+                new HBox(10, tfId, btnBuscar, btnAtualizar, btnExcluir),
+                tfNome, tfDescricao, tfFabricante, tfNumeroSerie,
+                new HBox(10, btnSalvar, btnListar),
+                taLista
+        );
     }
 
     private void inserirEquipamento() {
         try {
+            if (tfNome.getText().isEmpty() || tfDescricao.getText().isEmpty() ||
+                    tfFabricante.getText().isEmpty() || tfNumeroSerie.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            if (!repo.numeroSerieDisponivel(tfNumeroSerie.getText(), null)) {
+                taLista.setText("Número de série já cadastrado.");
+                return;
+            }
             Equipamento equipamento = new Equipamento(
-                    Integer.parseInt(tfId.getText()),
                     tfNome.getText(),
                     tfDescricao.getText(),
                     tfFabricante.getText(),
@@ -69,6 +80,10 @@ public class EquipamentoView extends VBox {
 
     private void buscarEquipamento() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para buscar.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             Equipamento equipamento = repo.buscarPorId(id);
             if (equipamento != null) {
@@ -86,13 +101,27 @@ public class EquipamentoView extends VBox {
 
     private void atualizarEquipamento() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para atualizar.");
+                return;
+            }
+            int id = Integer.parseInt(tfId.getText());
+            if (tfNome.getText().isEmpty() || tfDescricao.getText().isEmpty() ||
+                    tfFabricante.getText().isEmpty() || tfNumeroSerie.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            if (!repo.numeroSerieDisponivel(tfNumeroSerie.getText(), id)) {
+                taLista.setText("Número de série já cadastrado para outro equipamento.");
+                return;
+            }
             Equipamento equipamento = new Equipamento(
-                    Integer.parseInt(tfId.getText()),
                     tfNome.getText(),
                     tfDescricao.getText(),
                     tfFabricante.getText(),
                     tfNumeroSerie.getText()
             );
+            equipamento.setIdEquipamento(id);
             repo.atualizar(equipamento);
             limparCampos();
             listarEquipamentos();
@@ -103,6 +132,10 @@ public class EquipamentoView extends VBox {
 
     private void excluirEquipamento() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para excluir.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             repo.excluir(id);
             limparCampos();

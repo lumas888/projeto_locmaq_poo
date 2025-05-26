@@ -22,7 +22,7 @@ public class ContratoLocacaoView extends VBox {
         setSpacing(10);
         setPadding(new Insets(15));
 
-        tfId.setPromptText("ID");
+        tfId.setPromptText("ID (para buscar, atualizar ou excluir)");
         tfDataInicio.setPromptText("Data Início");
         tfDataFim.setPromptText("Data Fim");
         tfDescricao.setPromptText("Descrição");
@@ -43,19 +43,33 @@ public class ContratoLocacaoView extends VBox {
         btnExcluir.setOnAction(e -> excluirContrato());
         btnListar.setOnAction(e -> listarContratos());
 
-        getChildren().addAll(tfId, tfDataInicio, tfDataFim, tfDescricao, tfValor,
-                new HBox(10, btnSalvar, btnBuscar, btnAtualizar, btnExcluir, btnListar),
-                taLista);
+        getChildren().addAll(
+                new HBox(10, tfId, btnBuscar, btnAtualizar, btnExcluir),
+                tfDataInicio, tfDataFim, tfDescricao, tfValor,
+                new HBox(10, btnSalvar, btnListar),
+                taLista
+        );
     }
 
     private void inserirContrato() {
         try {
+            if (tfDataInicio.getText().isEmpty() || tfDataFim.getText().isEmpty() ||
+                    tfDescricao.getText().isEmpty() || tfValor.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos obrigatórios.");
+                return;
+            }
+            double valor;
+            try {
+                valor = Double.parseDouble(tfValor.getText());
+            } catch (NumberFormatException ex) {
+                taLista.setText("Valor inválido.");
+                return;
+            }
             ContratoLocacao contrato = new ContratoLocacao(
-                    Integer.parseInt(tfId.getText()),
                     tfDataInicio.getText(),
                     tfDataFim.getText(),
                     tfDescricao.getText(),
-                    Double.parseDouble(tfValor.getText())
+                    valor
             );
             repo.salvar(contrato);
             limparCampos();
@@ -67,6 +81,10 @@ public class ContratoLocacaoView extends VBox {
 
     private void buscarContrato() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para buscar.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             ContratoLocacao contrato = repo.buscarPorId(id);
             if (contrato != null) {
@@ -84,13 +102,30 @@ public class ContratoLocacaoView extends VBox {
 
     private void atualizarContrato() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para atualizar.");
+                return;
+            }
+            if (tfDataInicio.getText().isEmpty() || tfDataFim.getText().isEmpty() ||
+                    tfDescricao.getText().isEmpty() || tfValor.getText().isEmpty()) {
+                taLista.setText("Preencha todos os campos obrigatórios.");
+                return;
+            }
+            double valor;
+            try {
+                valor = Double.parseDouble(tfValor.getText());
+            } catch (NumberFormatException ex) {
+                taLista.setText("Valor inválido.");
+                return;
+            }
+            int id = Integer.parseInt(tfId.getText());
             ContratoLocacao contrato = new ContratoLocacao(
-                    Integer.parseInt(tfId.getText()),
                     tfDataInicio.getText(),
                     tfDataFim.getText(),
                     tfDescricao.getText(),
-                    Double.parseDouble(tfValor.getText())
+                    valor
             );
+            contrato.setId(id);
             repo.atualizar(contrato);
             limparCampos();
             listarContratos();
@@ -101,6 +136,10 @@ public class ContratoLocacaoView extends VBox {
 
     private void excluirContrato() {
         try {
+            if (tfId.getText().isEmpty()) {
+                taLista.setText("Informe o ID para excluir.");
+                return;
+            }
             int id = Integer.parseInt(tfId.getText());
             repo.excluir(id);
             limparCampos();

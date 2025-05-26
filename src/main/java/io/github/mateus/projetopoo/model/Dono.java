@@ -12,8 +12,7 @@ public class Dono implements Serializable {
     private String agencia;
     private String numeroConta;
 
-    public Dono(int idDono, String nome, String endereco, String email, String telefone, String banco, String agencia, String numeroConta) {
-        this.idDono = idDono;
+    public Dono(String nome, String endereco, String email, String telefone, String banco, String agencia, String numeroConta) {
         this.nome = nome;
         this.endereco = endereco;
         this.email = email;

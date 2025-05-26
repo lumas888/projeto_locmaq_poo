@@ -11,6 +11,8 @@ public class BoletimMedicaoRepository {
 
     public void salvar(BoletimMedicao boletim) throws IOException {
         List<BoletimMedicao> lista = listarTodos();
+        int novoId = lista.stream().mapToInt(BoletimMedicao::getId).max().orElse(0) + 1;
+        boletim.setId(novoId);
         lista.add(boletim);
         salvarLista(lista);
     }

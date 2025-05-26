@@ -9,8 +9,7 @@ public class Equipamento implements Serializable {
     private String fabricante;
     private String numeroSerie;
 
-    public Equipamento(int idEquipamento, String nome, String descricao, String fabricante, String numeroSerie) {
-        this.idEquipamento = idEquipamento;
+    public Equipamento(String nome, String descricao, String fabricante, String numeroSerie) {
         this.nome = nome;
         this.descricao = descricao;
         this.fabricante = fabricante;

@@ -87,8 +87,8 @@ public class MainApp extends Application {
         tituloMenu.setFont(new Font("Arial", 28));
         tituloMenu.setTextFill(Color.web("#263238"));
 
-        Button btnEquipamento = criarBotaoCRUD("Gerenciar Equipamento", new EquipamentoView());
-        Button btnContrato = criarBotaoCRUD("Gerenciar Contrato de Locação", new ContratoLocacaoView());
+        Button btnEquipamento = criarBotaoCRUD("Gerenciar Equipamento", EquipamentoView.class);
+        Button btnContrato = criarBotaoCRUD("Gerenciar Contrato de Locação", ContratoLocacaoView.class);
 
         menu.getChildren().addAll(tituloMenu, btnEquipamento, btnContrato);
 
@@ -108,9 +108,9 @@ public class MainApp extends Application {
         tituloMenu.setFont(new Font("Arial", 28));
         tituloMenu.setTextFill(Color.web("#263238"));
 
-        Button btnBoletim = criarBotaoCRUD("Boletim de Medição", new BoletimMedicaoView());
-        Button btnCliente = criarBotaoCRUD("Gerenciar Cliente", new ClienteView());
-        Button btnDono = criarBotaoCRUD("Gerenciar Dono", new DonoView());
+        Button btnBoletim = criarBotaoCRUD("Boletim de Medição", BoletimMedicaoView.class);
+        Button btnCliente = criarBotaoCRUD("Gerenciar Cliente", ClienteView.class);
+        Button btnDono = criarBotaoCRUD("Gerenciar Dono", DonoView.class);
 
         menu.getChildren().addAll(tituloMenu, btnBoletim, btnCliente, btnDono);
 
@@ -120,10 +120,17 @@ public class MainApp extends Application {
         stage.show();
     }
 
-    private Button criarBotaoCRUD(String texto, VBox view) {
+    private Button criarBotaoCRUD(String texto, Class<? extends VBox> viewClass) {
         Button btn = new Button(texto);
         estilizarBotaoCRUD(btn);
-        btn.setOnAction(e -> abrirJanela(view, texto));
+        btn.setOnAction(e -> {
+            try {
+                VBox view = viewClass.getDeclaredConstructor().newInstance();
+                abrirJanela(view, texto);
+            } catch (Exception ex) {
+                mostrarAlerta("Erro ao abrir a tela: " + ex.getMessage());
+            }
+        });
         return btn;
     }
 
