@@ -10,8 +10,7 @@ public class Usuario implements Serializable {
     private String email;
     private TipoUsuario tipo;
 
-    public Usuario(int idUsuario, String nome, String login, String senha, String email, TipoUsuario tipo) {
-        this.idUsuario = idUsuario;
+    public Usuario(String nome, String login, String senha, String email, TipoUsuario tipo) {
         this.nome = nome;
         this.login = login;
         this.senha = senha;
