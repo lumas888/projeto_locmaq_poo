@@ -11,6 +11,14 @@ public class UsuarioRepository {
 
     public void salvar(Usuario usuario) throws IOException {
         List<Usuario> lista = listarTodos();
+        // Gera novo ID automaticamente se for zero
+        if (usuario.getIdUsuario() == 0) {
+            int maxId = lista.stream()
+                    .mapToInt(Usuario::getIdUsuario)
+                    .max()
+                    .orElse(0);
+            usuario.setIdUsuario(maxId + 1);
+        }
         lista.add(usuario);
         salvarLista(lista);
     }
@@ -49,6 +57,16 @@ public class UsuarioRepository {
     public Usuario buscarPorId(int idUsuario) {
         for (Usuario u : listarTodos()) {
             if (u.getIdUsuario() == idUsuario) return u;
+        }
+        return null;
+    }
+
+    // Método para autenticação por login e senha
+    public Usuario autenticar(String login, String senha) {
+        for (Usuario u : listarTodos()) {
+            if (u.getLogin().equals(login) && u.getSenha().equals(senha)) {
+                return u;
+            }
         }
         return null;
     }
