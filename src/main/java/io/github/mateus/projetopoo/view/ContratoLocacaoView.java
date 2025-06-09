@@ -1,7 +1,11 @@
 package io.github.mateus.projetopoo.view;
 
 import io.github.mateus.projetopoo.model.ContratoLocacao;
+import io.github.mateus.projetopoo.model.Cliente;
+import io.github.mateus.projetopoo.model.Equipamento;
 import io.github.mateus.projetopoo.repository.ContratoLocacaoRepository;
+import io.github.mateus.projetopoo.repository.ClienteRepository;
+import io.github.mateus.projetopoo.repository.EquipamentoRepository;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
@@ -15,8 +19,12 @@ public class ContratoLocacaoView extends VBox {
     private TextField tfDescricao = new TextField();
     private TextField tfValor = new TextField();
     private TextArea taLista = new TextArea();
+    private ComboBox<Cliente> cbCliente = new ComboBox<>();
+    private ComboBox<Equipamento> cbEquipamento = new ComboBox<>();
 
     private ContratoLocacaoRepository repo = new ContratoLocacaoRepository();
+    private ClienteRepository clienteRepo = new ClienteRepository();
+    private EquipamentoRepository equipamentoRepo = new EquipamentoRepository();
 
     public ContratoLocacaoView() {
         setSpacing(10);
@@ -27,6 +35,11 @@ public class ContratoLocacaoView extends VBox {
         tfDataFim.setPromptText("Data Fim");
         tfDescricao.setPromptText("Descrição");
         tfValor.setPromptText("Valor");
+        cbCliente.setPromptText("Selecione o Cliente");
+        cbEquipamento.setPromptText("Selecione o Equipamento");
+
+        cbCliente.getItems().addAll(clienteRepo.listarTodos());
+        cbEquipamento.getItems().addAll(equipamentoRepo.listarTodos());
 
         taLista.setPrefRowCount(10);
         taLista.setEditable(false);
@@ -45,6 +58,7 @@ public class ContratoLocacaoView extends VBox {
 
         getChildren().addAll(
                 new HBox(10, tfId, btnBuscar, btnAtualizar, btnExcluir),
+                cbCliente, cbEquipamento,
                 tfDataInicio, tfDataFim, tfDescricao, tfValor,
                 new HBox(10, btnSalvar, btnListar),
                 taLista
@@ -54,8 +68,21 @@ public class ContratoLocacaoView extends VBox {
     private void inserirContrato() {
         try {
             if (tfDataInicio.getText().isEmpty() || tfDataFim.getText().isEmpty() ||
-                    tfDescricao.getText().isEmpty() || tfValor.getText().isEmpty()) {
-                taLista.setText("Preencha todos os campos obrigatórios.");
+                    tfDescricao.getText().isEmpty() || tfValor.getText().isEmpty() ||
+                    cbCliente.getValue() == null || cbEquipamento.getValue() == null) {
+                taLista.setText("Preencha todos os campos obrigatórios, incluindo cliente e equipamento.");
+                return;
+            }
+            java.time.LocalDate dataInicio, dataFim;
+            try {
+                dataInicio = java.time.LocalDate.parse(tfDataInicio.getText());
+                dataFim = java.time.LocalDate.parse(tfDataFim.getText());
+            } catch (java.time.format.DateTimeParseException ex) {
+                taLista.setText("Data inválida. Use o formato yyyy-MM-dd.");
+                return;
+            }
+            if (dataInicio.isAfter(dataFim)) {
+                taLista.setText("A data de início não pode ser após a data de fim.");
                 return;
             }
             double valor;
@@ -69,7 +96,9 @@ public class ContratoLocacaoView extends VBox {
                     tfDataInicio.getText(),
                     tfDataFim.getText(),
                     tfDescricao.getText(),
-                    valor
+                    valor,
+                    cbCliente.getValue(),
+                    cbEquipamento.getValue()
             );
             repo.salvar(contrato);
             limparCampos();
@@ -92,6 +121,8 @@ public class ContratoLocacaoView extends VBox {
                 tfDataFim.setText(contrato.getDataFim());
                 tfDescricao.setText(contrato.getDescricao());
                 tfValor.setText(String.valueOf(contrato.getValor()));
+                cbCliente.getSelectionModel().select(contrato.getCliente());
+                cbEquipamento.getSelectionModel().select(contrato.getEquipamento());
             } else {
                 taLista.setText("Contrato não encontrado.");
             }
@@ -107,8 +138,21 @@ public class ContratoLocacaoView extends VBox {
                 return;
             }
             if (tfDataInicio.getText().isEmpty() || tfDataFim.getText().isEmpty() ||
-                    tfDescricao.getText().isEmpty() || tfValor.getText().isEmpty()) {
-                taLista.setText("Preencha todos os campos obrigatórios.");
+                    tfDescricao.getText().isEmpty() || tfValor.getText().isEmpty() ||
+                    cbCliente.getValue() == null || cbEquipamento.getValue() == null) {
+                taLista.setText("Preencha todos os campos obrigatórios, incluindo cliente e equipamento.");
+                return;
+            }
+            java.time.LocalDate dataInicio, dataFim;
+            try {
+                dataInicio = java.time.LocalDate.parse(tfDataInicio.getText());
+                dataFim = java.time.LocalDate.parse(tfDataFim.getText());
+            } catch (java.time.format.DateTimeParseException ex) {
+                taLista.setText("Data inválida. Use o formato yyyy-MM-dd.");
+                return;
+            }
+            if (dataInicio.isAfter(dataFim)) {
+                taLista.setText("A data de início não pode ser após a data de fim.");
                 return;
             }
             double valor;
@@ -123,7 +167,9 @@ public class ContratoLocacaoView extends VBox {
                     tfDataInicio.getText(),
                     tfDataFim.getText(),
                     tfDescricao.getText(),
-                    valor
+                    valor,
+                    cbCliente.getValue(),
+                    cbEquipamento.getValue()
             );
             contrato.setId(id);
             repo.atualizar(contrato);
@@ -162,5 +208,8 @@ public class ContratoLocacaoView extends VBox {
         tfDataFim.clear();
         tfDescricao.clear();
         tfValor.clear();
+        cbCliente.getSelectionModel().clearSelection();
+        cbEquipamento.getSelectionModel().clearSelection();
     }
 }
+

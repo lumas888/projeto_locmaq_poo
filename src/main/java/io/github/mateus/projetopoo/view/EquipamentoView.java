@@ -10,6 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 public class EquipamentoView extends VBox {
     private TextField tfId = new TextField();
@@ -53,11 +54,31 @@ public class EquipamentoView extends VBox {
         );
     }
 
+    private boolean nomeValido(String nome) {
+        // Deve conter pelo menos uma letra
+        String regex = ".*[A-Za-zÀ-ÿ].*";
+        return Pattern.matches(regex, nome);
+    }
+
+    private boolean numeroSerieValido(String numeroSerie) {
+        // Deve conter pelo menos um número
+        String regex = ".*[0-9].*";
+        return Pattern.matches(regex, numeroSerie);
+    }
+
     private void inserirEquipamento() {
         try {
             if (tfNome.getText().isEmpty() || tfDescricao.getText().isEmpty() ||
                     tfFabricante.getText().isEmpty() || tfNumeroSerie.getText().isEmpty()) {
                 taLista.setText("Preencha todos os campos.");
+                return;
+            }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("O nome do equipamento deve conter pelo menos uma letra.");
+                return;
+            }
+            if (!numeroSerieValido(tfNumeroSerie.getText())) {
+                taLista.setText("O número de série deve conter pelo menos um número.");
                 return;
             }
             if (!repo.numeroSerieDisponivel(tfNumeroSerie.getText(), null)) {
@@ -111,6 +132,14 @@ public class EquipamentoView extends VBox {
                 taLista.setText("Preencha todos os campos.");
                 return;
             }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("O nome do equipamento deve conter pelo menos uma letra.");
+                return;
+            }
+            if (!numeroSerieValido(tfNumeroSerie.getText())) {
+                taLista.setText("O número de série deve conter pelo menos um número.");
+                return;
+            }
             if (!repo.numeroSerieDisponivel(tfNumeroSerie.getText(), id)) {
                 taLista.setText("Número de série já cadastrado para outro equipamento.");
                 return;
@@ -160,3 +189,4 @@ public class EquipamentoView extends VBox {
         tfNumeroSerie.clear();
     }
 }
+

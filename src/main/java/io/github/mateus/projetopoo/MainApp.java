@@ -108,11 +108,10 @@ public class MainApp extends Application {
         tituloMenu.setFont(new Font("Arial", 28));
         tituloMenu.setTextFill(Color.web("#263238"));
 
-        Button btnBoletim = criarBotaoCRUD("Boletim de Medição", BoletimMedicaoView.class);
         Button btnCliente = criarBotaoCRUD("Gerenciar Cliente", ClienteView.class);
         Button btnDono = criarBotaoCRUD("Gerenciar Dono", DonoView.class);
 
-        menu.getChildren().addAll(tituloMenu, btnBoletim, btnCliente, btnDono);
+        menu.getChildren().addAll(tituloMenu, btnCliente, btnDono);
 
         Stage stage = new Stage();
         stage.setTitle("Menu Planejador");

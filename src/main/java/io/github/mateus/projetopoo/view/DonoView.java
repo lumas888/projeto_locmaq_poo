@@ -63,6 +63,35 @@ public class DonoView extends VBox {
         return Pattern.matches(regex, email);
     }
 
+    private boolean nomeValido(String nome) {
+        String regex = "^[A-Za-zÀ-ÿ ]{2,}$";
+        return Pattern.matches(regex, nome);
+    }
+
+    private boolean telefoneValido(String telefone) {
+        String regex = "^\\d{10,11}$";
+        return Pattern.matches(regex, telefone);
+    }
+
+    private boolean agenciaValida(String agencia) {
+        String regex = "^\\d{3,6}$";
+        return Pattern.matches(regex, agencia);
+    }
+
+    private boolean numeroContaValida(String numeroConta) {
+        String regex = "^\\d{4,10}$";
+        return Pattern.matches(regex, numeroConta);
+    }
+
+    private boolean emailDisponivel(String email, Integer ignorarId) {
+        for (Dono d : repo.listarTodos()) {
+            if (d.getEmail().equalsIgnoreCase(email) && (ignorarId == null || d.getIdDono() != ignorarId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void inserirDono() {
         try {
             if (tfNome.getText().isEmpty() || tfEndereco.getText().isEmpty() ||
@@ -72,12 +101,28 @@ public class DonoView extends VBox {
                 taLista.setText("Preencha todos os campos.");
                 return;
             }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("Nome deve conter apenas letras e ter pelo menos 2 caracteres.");
+                return;
+            }
             if (!emailValido(tfEmail.getText())) {
                 taLista.setText("E-mail inválido.");
                 return;
             }
-            if (!repo.emailDisponivel(tfEmail.getText(), null)) {
+            if (!emailDisponivel(tfEmail.getText(), null)) {
                 taLista.setText("E-mail já cadastrado.");
+                return;
+            }
+            if (!telefoneValido(tfTelefone.getText())) {
+                taLista.setText("Telefone deve ter 10 ou 11 dígitos numéricos.");
+                return;
+            }
+            if (!agenciaValida(tfAgencia.getText())) {
+                taLista.setText("Agência deve ter entre 3 e 6 dígitos numéricos.");
+                return;
+            }
+            if (!numeroContaValida(tfNumeroConta.getText())) {
+                taLista.setText("Número da conta deve ter entre 4 e 10 dígitos numéricos.");
                 return;
             }
             Dono dono = new Dono(
@@ -135,12 +180,16 @@ public class DonoView extends VBox {
                 taLista.setText("Preencha todos os campos.");
                 return;
             }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("Nome deve conter apenas letras e ter pelo menos 2 caracteres.");
+                return;
+            }
             if (!emailValido(tfEmail.getText())) {
                 taLista.setText("E-mail inválido.");
                 return;
             }
-            if (!repo.emailDisponivel(tfEmail.getText(), id)) {
-                taLista.setText("E-mail já cadastrado para outro dono.");
+            if (!telefoneValido(tfTelefone.getText())) {
+                taLista.setText("Telefone deve ter 10 ou 11 dígitos numéricos.");
                 return;
             }
             Dono dono = new Dono(
@@ -194,3 +243,4 @@ public class DonoView extends VBox {
         tfNumeroConta.clear();
     }
 }
+

@@ -59,9 +59,29 @@ public class ClienteView extends VBox {
         return Pattern.matches(regex, email);
     }
 
+    private boolean emailDisponivel(String email, Integer ignorarId) {
+        for (Cliente c : repo.listarTodos()) {
+            if (c.getEmail().equalsIgnoreCase(email) && (ignorarId == null || c.getIdCliente() != ignorarId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private boolean cnpjValido(String cnpj) {
         String regex = "^\\d{14}$";
         return Pattern.matches(regex, cnpj);
+    }
+
+    private boolean telefoneValido(String telefone) {
+        String regex = "^\\d{10,11}$";
+        return Pattern.matches(regex, telefone);
+    }
+
+    private boolean nomeValido(String nome) {
+        // Aceita apenas letras (com ou sem acento) e espaços, mínimo 2 caracteres
+        String regex = "^[A-Za-zÀ-ÿ ]{2,}$";
+        return Pattern.matches(regex, nome);
     }
 
     private void inserirCliente() {
@@ -71,12 +91,24 @@ public class ClienteView extends VBox {
                 taLista.setText("Preencha todos os campos.");
                 return;
             }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("Nome deve conter apenas letras e ter pelo menos 2 caracteres.");
+                return;
+            }
             if (!emailValido(tfEmail.getText())) {
                 taLista.setText("E-mail inválido.");
                 return;
             }
+            if (!emailDisponivel(tfEmail.getText(), null)) {
+                taLista.setText("E-mail já cadastrado.");
+                return;
+            }
             if (!cnpjValido(tfCnpj.getText())) {
                 taLista.setText("CNPJ deve ter 14 dígitos numéricos.");
+                return;
+            }
+            if (!telefoneValido(tfTelefone.getText())) {
+                taLista.setText("Telefone deve ter 10 ou 11 dígitos numéricos.");
                 return;
             }
             if (!repo.cnpjDisponivel(tfCnpj.getText(), null)) {
@@ -130,12 +162,24 @@ public class ClienteView extends VBox {
                 taLista.setText("Preencha todos os campos.");
                 return;
             }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("Nome deve conter apenas letras e ter pelo menos 2 caracteres.");
+                return;
+            }
             if (!emailValido(tfEmail.getText())) {
                 taLista.setText("E-mail inválido.");
                 return;
             }
+            if (!emailDisponivel(tfEmail.getText(), id)) {
+                taLista.setText("E-mail já cadastrado para outro cliente.");
+                return;
+            }
             if (!cnpjValido(tfCnpj.getText())) {
                 taLista.setText("CNPJ deve ter 14 dígitos numéricos.");
+                return;
+            }
+            if (!telefoneValido(tfTelefone.getText())) {
+                taLista.setText("Telefone deve ter 10 ou 11 dígitos numéricos.");
                 return;
             }
             if (!repo.cnpjDisponivel(tfCnpj.getText(), id)) {
@@ -187,3 +231,4 @@ public class ClienteView extends VBox {
         tfEmail.clear();
     }
 }
+

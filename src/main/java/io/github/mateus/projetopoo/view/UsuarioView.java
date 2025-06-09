@@ -61,9 +61,28 @@ public class UsuarioView extends VBox {
         return Pattern.matches(regex, email);
     }
 
+    private boolean nomeValido(String nome) {
+        String regex = "^[A-Za-zÀ-ÿ ]{2,}$";
+        return Pattern.matches(regex, nome);
+    }
+
+    private boolean senhaValida(String senha) {
+        // Pelo menos 6 caracteres
+        return senha.length() >= 6;
+    }
+
     private boolean loginDisponivel(String login, Integer ignorarId) {
         for (Usuario u : repo.listarTodos()) {
             if (u.getLogin().equals(login) && (ignorarId == null || u.getIdUsuario() != ignorarId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean emailDisponivel(String email, Integer ignorarId) {
+        for (Usuario u : repo.listarTodos()) {
+            if (u.getEmail().equalsIgnoreCase(email) && (ignorarId == null || u.getIdUsuario() != ignorarId)) {
                 return false;
             }
         }
@@ -78,8 +97,20 @@ public class UsuarioView extends VBox {
                 taLista.setText("Preencha todos os campos.");
                 return;
             }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("Nome deve conter apenas letras e ter pelo menos 2 caracteres.");
+                return;
+            }
+            if (!senhaValida(tfSenha.getText())) {
+                taLista.setText("Senha deve ter pelo menos 6 caracteres.");
+                return;
+            }
             if (!emailValido(tfEmail.getText())) {
                 taLista.setText("E-mail inválido.");
+                return;
+            }
+            if (!emailDisponivel(tfEmail.getText(), null)) {
+                taLista.setText("E-mail já cadastrado.");
                 return;
             }
             if (!loginDisponivel(tfLogin.getText(), null)) {
@@ -136,8 +167,20 @@ public class UsuarioView extends VBox {
                 taLista.setText("Preencha todos os campos.");
                 return;
             }
+            if (!nomeValido(tfNome.getText())) {
+                taLista.setText("Nome deve conter apenas letras e ter pelo menos 2 caracteres.");
+                return;
+            }
+            if (!senhaValida(tfSenha.getText())) {
+                taLista.setText("Senha deve ter pelo menos 6 caracteres.");
+                return;
+            }
             if (!emailValido(tfEmail.getText())) {
                 taLista.setText("E-mail inválido.");
+                return;
+            }
+            if (!emailDisponivel(tfEmail.getText(), id)) {
+                taLista.setText("E-mail já cadastrado para outro usuário.");
                 return;
             }
             if (!loginDisponivel(tfLogin.getText(), id)) {
@@ -191,3 +234,4 @@ public class UsuarioView extends VBox {
         cbTipo.setValue(null);
     }
 }
+
